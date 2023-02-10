@@ -8,6 +8,9 @@
 #include <string>
 
 #include "Model.h"
+#include "CollisionInfo.h"
+
+class BaseCollider;
 
 /// <summary>
 /// 3Dオブジェクト
@@ -28,8 +31,8 @@ public: // サブクラス
 	// 定数バッファ用データ構造体B0
 	struct ConstBufferDataB0
 	{
-		XMFLOAT4 color;	// 色 (RGBA)
-		XMMATRIX mat;	// ３Ｄ変換行列
+		XMFLOAT4 color;	// 色(RGBA)
+		XMMATRIX mat;	// 3D変換行列
 	};
 
 public: // 静的メンバ関数
@@ -129,16 +132,50 @@ private:// 静的メンバ関数
 	static void UpdateViewMatrix();
 
 public: // メンバ関数
-	bool Initialize();
+
+	/// <summary>
+	/// コンストラクタ
+	/// </summary>
+	Object3d() = default;
+
+	/// <summary>
+	/// デストラクタ
+	/// </summary>
+	virtual ~Object3d();
+
+	/// <summary>
+	/// 初期化
+	/// </summary>
+	/// <returns></returns>
+	virtual bool Initialize();
+
 	/// <summary>
 	/// 毎フレーム処理
 	/// </summary>
-	void Update();
+	virtual void Update();
 
 	/// <summary>
 	/// 描画
 	/// </summary>
-	void Draw();
+	virtual void Draw();
+
+	/// <summary>
+	/// ワールド行列の取得
+	/// </summary>
+	/// <returns>ワールド行列</returns>
+	const XMMATRIX& GetMatWorld() { return matWorld; }
+
+	/// <summary>
+	/// コライダーのセット
+	/// </summary>
+	/// <param name="collider">コライダー</param>
+	void SetCollider(BaseCollider* collider);
+
+	/// <summary>
+	/// 衝突時コールバック関数
+	/// </summary>
+	/// <param name="info">衝突情報</param>
+	virtual void OnCollision(const CollisionInfo& info) {}
 
 	// モデルの設定
 	void SetModel(Model* model) { this->model = model; }
@@ -148,8 +185,8 @@ public: // メンバ関数
 	XMFLOAT4& GetColor() { return color; }
 
 	// オブジェクトの座標
-	const XMFLOAT3& GetPosition() const { return position; }
 	void SetPosition(const XMFLOAT3& position) { this->position = position; }
+	const XMFLOAT3& GetPosition() const { return position; }
 	// オブジェクトの大きさ
 	void SetScale(const XMFLOAT3& scale) { this->scale = scale; }
 	const XMFLOAT3& GetScale() const { return scale; }
@@ -157,7 +194,11 @@ public: // メンバ関数
 	void SetRotation(const XMFLOAT3& rotation) { this->rotation = rotation; }
 	const XMFLOAT3& GetRotation() const { return rotation; }
 
-private: // メンバ変数
+protected: // メンバ変数
+	// クラス名(デバック用)
+	const char* name = nullptr;
+	// コライダー
+	BaseCollider* collider = nullptr;
 	// モデル
 	Model* model = nullptr;
 	// 定数バッファ
